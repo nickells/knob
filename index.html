@@ -14,6 +14,10 @@
     }
     body.is-grabbing #knob {
       cursor: -webkit-grabbing;
+      opacity: .8;
+    }
+    body.is-scrolling #knob {
+      cursor: default;
     }
     .container {
       display: flex;
@@ -22,13 +26,16 @@
       height: 500px;
       align-items: center;
       justify-content: center;
+      background: black;
     }
     #knob {
-      border: 3px solid black;
+      border: 3px solid white;
+      color: white;
       display: inline-block;
       width: 50px;
       height: 50px;
       cursor: -webkit-grab;
+      opacity: 1;
       border-radius: 100%;
       line-height: 12px;
       text-align: center;
@@ -36,7 +43,7 @@
       transform: rotate(0deg);
       -webkit-user-select: none;
       background-color: hsl(0, 63%, 60%);
-      transition: background-color 100ms;
+      transition: background-color 100ms, opacity 200ms;
     }
   </style>
 </head>
