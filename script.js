@@ -1,24 +1,24 @@
 const HAS_TOUCH = ('ontouchstart' in window)
-function getCoord(evt, val){
-  let coord = val === 'X' ? 'clientX' : 'clientY'
+function getCoord(evt){
+  return (val) => {
+    let coord = val === 'X' ? 'clientX' : 'clientY'
+    return HAS_TOUCH ? evt.touches[0][coord] : evt[coord]
+  }
   // switch to screen if parent has unknown width?
-  return HAS_TOUCH ? evt.touches[0][coord] : evt[coord]
 }
 
-function Knob(elementId){
-  let spinner = document.getElementById(elementId)
+function Knob(elem){
+  let spinner = elem
   let feedback = document.getElementById('feedback')
-  let changeHandler = spinner.getAttribute('onRotate')
-  let height = spinner.offsetHeight
   
   const center = {
-    x: spinner.offsetTop + spinner.offsetHeight / 2,
-    y: spinner.offsetLeft + spinner.offsetWidth / 2
+    x: spinner.offsetLeft + spinner.offsetWidth / 2,
+    y: spinner.offsetTop + spinner.offsetHeight / 2
   }
 
-  let startX = 0,
-    startY = 0,
-    lastDeg = 0,
+  console.log(center)
+
+  let lastDeg = 0,
     active = false
 
   function onRelease(e){
@@ -33,7 +33,7 @@ function Knob(elementId){
   }
 
   function rotate(deg){
-    deg = deg % 360
+    deg %= 360
     lastDeg = deg
     spinner.style.transform = `rotate(${deg}deg)`
     spinner.style.backgroundColor = `hsl(${deg}, 63%, 60%)`
@@ -41,10 +41,12 @@ function Knob(elementId){
   }
 
   function onMove(e){
+    const getCoordForElement = getCoord(e)
     e.preventDefault()
     if (active){
-      let diffX = getCoord(e, 'X') - center.x
-      let diffY = center.y - getCoord(e, 'Y')
+      let diffX = getCoordForElement('X') - center.x
+      let diffY = center.y - getCoordForElement('Y')
+      console.log(getCoordForElement('X'), center.x)
       let arctan = Math.atan2(diffY , diffX)
       let deg = arctan * (180 / Math.PI)
       let roundDeg = roundTo(deg, 15)
@@ -68,15 +70,14 @@ function Knob(elementId){
 
 
   function onScroll(e){
-    const mode = 'orthoganal'
+    const mode = 'relative'
     e.preventDefault()
-    const { deltaY } = e
+    const {deltaY} = e
     let newDeg = 0
     if (mode === 'relative'){
       let scrollMultiplier = 0.4
       newDeg = roundTo(lastDeg + deltaY * scrollMultiplier, 15)
-    }
-    else if (mode === 'orthoganal') {
+    } else if (mode === 'orthoganal') {
       let scrollMultiplier = 8
       const direction = Math.sign(deltaY)
       newDeg = roundTo(lastDeg + direction * scrollMultiplier, 15)
@@ -94,4 +95,6 @@ function Knob(elementId){
   window.addEventListener('touchmove', onMove, false)
 }
 
-new Knob('knob')
+new Knob(document.getElementById('knob-1'))
+new Knob(document.getElementById('knob-2'))
+new Knob(document.getElementById('knob-3'))

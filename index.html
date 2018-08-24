@@ -25,10 +25,10 @@
       width: 500px;
       height: 500px;
       align-items: center;
-      justify-content: center;
+      justify-content: space-around;
       background: black;
     }
-    #knob {
+    .knob {
       border: 3px solid white;
       color: white;
       display: inline-block;
@@ -49,7 +49,10 @@
 </head>
 <body>
   <div class="container">
-    <div id="knob" onRotate="(val)=>console.log(val)">•</div>
+    <div class="knob" id="knob-1" onRotate="(val)=>console.log(val)">•</div>
+    <div class="knob" id="knob-2" onRotate="(val)=>console.log(val)">•</div>
+    <div class="knob" id="knob-3" onRotate="(val)=>console.log(val)">•</div>
+
   </div>
   <div id="feedback"></div>
 <script src="script.js"></script>
