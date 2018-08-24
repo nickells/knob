@@ -9,14 +9,14 @@ function getCoord(evt){
 
 function Knob(elem){
   let spinner = elem
+  let inner = elem.firstElementChild
   let feedback = document.getElementById('feedback')
+
   
   const center = {
     x: spinner.offsetLeft + spinner.offsetWidth / 2,
     y: spinner.offsetTop + spinner.offsetHeight / 2
   }
-
-  console.log(center)
 
   let lastDeg = 0,
     active = false
@@ -35,8 +35,8 @@ function Knob(elem){
   function rotate(deg){
     deg %= 360
     lastDeg = deg
-    spinner.style.transform = `rotate(${deg}deg)`
-    spinner.style.backgroundColor = `hsl(${deg}, 63%, 60%)`
+    inner.style.transform = `rotate(${deg}deg)`
+    // spinner.style.backgroundColor = `hsl(${deg}, 63%, 60%)`
     navigator.vibrate && navigator.vibrate([50])
   }
 
@@ -46,7 +46,6 @@ function Knob(elem){
     if (active){
       let diffX = getCoordForElement('X') - center.x
       let diffY = center.y - getCoordForElement('Y')
-      console.log(getCoordForElement('X'), center.x)
       let arctan = Math.atan2(diffY , diffX)
       let deg = arctan * (180 / Math.PI)
       let roundDeg = roundTo(deg, 15)
