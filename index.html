@@ -7,16 +7,14 @@
     body{
       width: 100%;
       height: 100vh;
+      font-family: 'Futura'
     }
     body.is-grabbing{
       cursor: -webkit-grabbing;
       -webkit-user-select: none;
     }
-    body.is-grabbing #knob {
-      cursor: -webkit-grabbing;
-      opacity: .8;
-    }
-    body.is-scrolling #knob {
+
+    body.is-scrolling .knob {
       cursor: default;
     }
     .container {
@@ -31,7 +29,7 @@
     
     .knob {
       border: 1px solid #444;
-      box-sizing: border-box;
+      /* box-sizing: border-box; */
       color: #444;
       display: inline-block;
       width: 50px;
@@ -40,17 +38,23 @@
       opacity: 1;
       border-radius: 100%;
       background-color: white;
-      transition: background-color 100ms, opacity 200ms;
+      transition: background-color 100ms, opacity 200ms, transform 100ms;
       position: relative;
-      overflow: hidden;
-      box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
+      /* overflow: hidden; */
+      /* box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2); */
+    }
+
+    .knob.is-active {
+      transform: scale(1.1);
+      cursor: -webkit-grabbing;
     }
 
     .knob .inner {
       position: absolute;
+      top: -2%;
       width: 8%;
       left: 46%;
-      height: 50%;
+      height: 52%;
       display: block;
       background-color: #444;
       transform-origin: center 100%;
@@ -63,6 +67,7 @@
     <div class="knob" id="knob-1"><div class="inner"></div></div>
     <div class="knob" id="knob-2"><div class="inner"></div></div>
     <div class="knob" id="knob-3"><div class="inner"></div></div>
+    <div class="knob" id="knob-4"><div class="inner"></div></div>
 
   </div>
   <div id="feedback"></div>

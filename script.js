@@ -7,12 +7,38 @@ function getCoord(evt){
   // switch to screen if parent has unknown width?
 }
 
-function Knob(elem){
+function Knob({selector: elem, notches: notchesCount}){
+  // config
+  const radius = 25
+
   let spinner = elem
   let inner = elem.firstElementChild
   let feedback = document.getElementById('feedback')
 
-  
+  const offset = 10
+  const degreeInterval = 360 / notchesCount
+  for (let notch = 1; notch <= notchesCount; notch++) {
+    const degree = notch * degreeInterval
+    let notchPosition = {
+      x: (radius + offset) * Math.cos(degree * (Math.PI / 180)) + radius - 3,
+      y: (radius + offset) * Math.sin(degree * (Math.PI / 180)) + radius - 1
+    }
+    console.log(notchPosition)
+    const notchElem = document.createElement('div')
+    notchElem.classList.add('notchElem')
+    notchElem.style.position = 'absolute'
+    notchElem.style.width = '6px'
+    notchElem.style.height = '1px'
+    notchElem.style.display='inline-block'
+    notchElem.style.backgroundColor = 'grey'
+    notchElem.style.left = `${notchPosition.x}px`
+    notchElem.style.top = `${notchPosition.y}px`
+    console.log(notchElem, degree)
+    notchElem.style.transform = `rotate(${degree}deg)`
+    spinner.appendChild(notchElem)
+  }
+
+
   const center = {
     x: spinner.offsetLeft + spinner.offsetWidth / 2,
     y: spinner.offsetTop + spinner.offsetHeight / 2
@@ -23,6 +49,7 @@ function Knob(elem){
 
   function onRelease(e){
     if (active){
+      spinner.classList.remove('is-active')
       document.body.classList.remove('is-grabbing')
       active = false
     }
@@ -48,7 +75,7 @@ function Knob(elem){
       let diffY = center.y - getCoordForElement('Y')
       let arctan = Math.atan2(diffY , diffX)
       let deg = arctan * (180 / Math.PI)
-      let roundDeg = roundTo(deg, 15)
+      let roundDeg = roundTo(deg, degreeInterval)
       let outputDeg = 90 - roundDeg
       if (outputDeg < 0) outputDeg = 360 + outputDeg
       if (Math.abs(outputDeg) === Math.abs(lastDeg)) return
@@ -63,7 +90,9 @@ function Knob(elem){
   function onGrab(e){
     if (!active){
       active = true
+      spinner.classList.add('is-active')
       document.body.classList.add('is-grabbing')
+      onMove(e)
     }
   }
 
@@ -94,6 +123,19 @@ function Knob(elem){
   window.addEventListener('touchmove', onMove, false)
 }
 
-new Knob(document.getElementById('knob-1'))
-new Knob(document.getElementById('knob-2'))
-new Knob(document.getElementById('knob-3'))
+new Knob({
+  notches: 24,
+  selector: document.getElementById('knob-1')
+})
+new Knob({
+  notches: 5,
+  selector: document.getElementById('knob-2')
+})
+new Knob({
+  notches: 11,
+  selector: document.getElementById('knob-3')
+})
+new Knob({
+  notches: 2,
+  selector: document.getElementById('knob-4')
+})
