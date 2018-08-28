@@ -16,26 +16,31 @@ function Knob({selector: elem, notches: notchesCount}){
   let feedback = document.getElementById('feedback')
 
   const offset = 10
-  const degreeInterval = 360 / notchesCount
-  for (let notch = 1; notch <= notchesCount; notch++) {
-    const degree = notch * degreeInterval
-    let notchPosition = {
-      x: (radius + offset) * Math.cos(degree * (Math.PI / 180)) + radius - 3,
-      y: (radius + offset) * Math.sin(degree * (Math.PI / 180)) + radius - 1
+  const degreeInterval = ( 360 / notchesCount ) || 1
+  if (notchesCount) {
+    for (let notch = 0; notch < notchesCount; notch++) {
+      // console.log(notch)
+      const degree = (notch * degreeInterval) - 90
+      let notchPosition = {
+        x: (radius + offset) * Math.cos(degree * (Math.PI / 180)) + radius - 3,
+        y: (radius + offset) * Math.sin(degree * (Math.PI / 180)) + radius - 1
+      }
+      const notchElem = document.createElement('div')
+      notchElem.classList.add('notchElem')
+      notchElem.style.position = 'absolute'
+      notchElem.style.width = '6px'
+      notchElem.style.height = '1px'
+      notchElem.style.display='inline-block'
+      notchElem.style.backgroundColor = 'grey'
+      notchElem.style.left = `${notchPosition.x}px`
+      notchElem.style.top = `${notchPosition.y}px`
+      notchElem.style.transition = `transform 500ms`
+      spinner.appendChild(notchElem)
+      notchElem.style.transform = `rotate(${degree}deg) scale(0)`
+      setTimeout(()=>{
+        notchElem.style.transform = `rotate(${degree}deg) scale(1)` 
+      }, notch * 50)
     }
-    console.log(notchPosition)
-    const notchElem = document.createElement('div')
-    notchElem.classList.add('notchElem')
-    notchElem.style.position = 'absolute'
-    notchElem.style.width = '6px'
-    notchElem.style.height = '1px'
-    notchElem.style.display='inline-block'
-    notchElem.style.backgroundColor = 'grey'
-    notchElem.style.left = `${notchPosition.x}px`
-    notchElem.style.top = `${notchPosition.y}px`
-    console.log(notchElem, degree)
-    notchElem.style.transform = `rotate(${degree}deg)`
-    spinner.appendChild(notchElem)
   }
 
 
@@ -63,7 +68,6 @@ function Knob({selector: elem, notches: notchesCount}){
     deg %= 360
     lastDeg = deg
     inner.style.transform = `rotate(${deg}deg)`
-    // spinner.style.backgroundColor = `hsl(${deg}, 63%, 60%)`
     navigator.vibrate && navigator.vibrate([50])
   }
 
@@ -74,14 +78,13 @@ function Knob({selector: elem, notches: notchesCount}){
       let diffX = getCoordForElement('X') - center.x
       let diffY = center.y - getCoordForElement('Y')
       let arctan = Math.atan2(diffY , diffX)
-      let deg = arctan * (180 / Math.PI)
+      let deg = 90 - arctan * (180 / Math.PI)
       let roundDeg = roundTo(deg, degreeInterval)
-      let outputDeg = 90 - roundDeg
-      if (outputDeg < 0) outputDeg = 360 + outputDeg
-      if (Math.abs(outputDeg) === Math.abs(lastDeg)) return
+      if (roundDeg < 0) roundDeg = 360 + roundDeg
+      if (Math.abs(roundDeg) === Math.abs(lastDeg)) return
       else {
-        rotate(outputDeg)
-        feedback.innerHTML = `X:${diffX} Y:${diffY} deg:${outputDeg}`
+        rotate(roundDeg)
+        feedback.innerHTML = `X:${diffX} Y:${diffY} deg:${roundDeg}`
       }
 
     }
@@ -128,14 +131,14 @@ new Knob({
   selector: document.getElementById('knob-1')
 })
 new Knob({
-  notches: 5,
+  notches: 12,
   selector: document.getElementById('knob-2')
 })
 new Knob({
-  notches: 11,
+  notches: 8,
   selector: document.getElementById('knob-3')
 })
 new Knob({
-  notches: 2,
+  // notches: 18,
   selector: document.getElementById('knob-4')
 })
