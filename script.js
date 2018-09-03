@@ -1,4 +1,20 @@
 const HAS_TOUCH = ('ontouchstart' in window)
+
+function applyStyles(elem, styles){
+  for (let [key, val] of Object.entries(styles)){
+    elem.style[key] = val
+  }
+}
+
+const notchStyles = {
+  position : 'absolute',
+  width : '6px',
+  height : '1px',
+  display: 'inline-block',
+  backgroundColor : 'grey',
+  transition : `transform 500ms`,
+}
+
 function getCoord(evt){
   return (val) => {
     let coord = val === 'X' ? 'clientX' : 'clientY'
@@ -27,18 +43,17 @@ function Knob({selector: elem, notches: notchesCount}){
       }
       const notchElem = document.createElement('div')
       notchElem.classList.add('notchElem')
-      notchElem.style.position = 'absolute'
-      notchElem.style.width = '6px'
-      notchElem.style.height = '1px'
-      notchElem.style.display='inline-block'
-      notchElem.style.backgroundColor = 'grey'
-      notchElem.style.left = `${notchPosition.x}px`
-      notchElem.style.top = `${notchPosition.y}px`
-      notchElem.style.transition = `transform 500ms`
+      applyStyles(notchElem, {
+        ...notchStyles,
+        left: `${notchPosition.x}px`,
+        top: `${notchPosition.y}px`,
+        transform: `rotate(${degree}deg) scale(0)`
+      })
       spinner.appendChild(notchElem)
-      notchElem.style.transform = `rotate(${degree}deg) scale(0)`
       setTimeout(()=>{
-        notchElem.style.transform = `rotate(${degree}deg) scale(1)` 
+        applyStyles(notchElem, {
+          transform: `rotate(${degree}deg) scale(1)` 
+        })
       }, notch * 50)
     }
   }
