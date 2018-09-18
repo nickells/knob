@@ -1,0 +1,25 @@
+{
+  "name": "knob-thing",
+  "version": "1.0.0",
+  "description": "A controllable knob for JS",
+  "main": ".eslintrc.js",
+  "dependencies": {
+    "eslint": "^5.6.0",
+    "prettier": "^1.14.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nickells/knob.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nickells/knob/issues"
+  },
+  "homepage": "https://github.com/nickells/knob#readme"
+}
