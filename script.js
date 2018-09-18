@@ -1,4 +1,5 @@
 const HAS_TOUCH = ('ontouchstart' in window)
+const feedback = document.getElementById('feedback')
 
 function applyStyles(elem, styles){
   for (let [key, val] of Object.entries(styles)){
@@ -15,6 +16,10 @@ const notchStyles = {
   transition : `transform 500ms`,
 }
 
+const toDegrees = (radian) => radian * (180/Math.PI)
+
+const toRadians = (degree) => degree * (Math.PI/180)
+
 function getCoord(evt){
   return (val) => {
     let coord = val === 'X' ? 'clientX' : 'clientY'
@@ -23,41 +28,96 @@ function getCoord(evt){
   // switch to screen if parent has unknown width?
 }
 
-function Knob({selector: elem, notches: notchesCount}){
+function within(val, min, max) {
+  return val >= min && val <= max
+}
+
+function nearestFromSet(num, set) {
+  let lastItem
+  for (let [index, item] of set.entries()) {
+    if (num === item) return item
+    else if (lastItem === undefined && num < item) {
+      return item
+    }
+    else if (num > lastItem && num < item) {
+      return Math.abs(num - lastItem) > Math.abs(num - item) ? item : lastItem
+    }
+    else if (index === set.length - 1) {
+      return item
+    }
+    
+    lastItem = item
+  }
+}
+
+function createNotches(spinner, radius, degrees){
+  const notch_offset = 15
+
+  degrees.forEach((degree, index) =>{
+    degree-=180
+    let notchPosition = {
+      x: (radius + notch_offset) * Math.cos(toRadians(degree)) + radius - 3,
+      y: (radius + notch_offset) * Math.sin(toRadians(degree)) + radius - 1
+    }
+    const notchElem = document.createElement('div')
+    notchElem.classList.add('notchElem')
+    applyStyles(notchElem, {
+      ...notchStyles,
+      left: `${notchPosition.x}px`,
+      top: `${notchPosition.y}px`,
+      transform: `rotate(${degree}deg) scale(0)`
+    })
+    spinner.appendChild(notchElem)
+    setTimeout(()=>{
+      applyStyles(notchElem, {
+        transform: `rotate(${degree}deg) scale(1)` 
+      })
+    }, index * 50)
+  })
+}
+
+function roundTo(num, to){
+  return Math.round(num/to) * to
+}
+
+function normalizeDegree(deg, DEGREES_DEAD_AREA, min, max) {
+  const offset = DEGREES_DEAD_AREA / 2
+  let newDeg = 360 - deg
+  if (newDeg < 90) newDeg += 360
+  newDeg = newDeg - 90 - offset
+  
+  return (newDeg / (360 - DEGREES_DEAD_AREA)) * (max - min)
+}
+
+function Knob({selector: elem, notches: notchesCount, min = 0, max = 100}){
   // config
   const radius = 25
+  const DEGREES_DEAD_AREA = 90
+  const DEGREES_START = 270 - (DEGREES_DEAD_AREA / 2) // assume 360 degrees, and 0 is at 3:00 position (CCW), then move it to this new starting point
 
   let spinner = elem
   let inner = elem.firstElementChild
-  let feedback = document.getElementById('feedback')
+  let _onChange = () => {}
 
-  const offset = 10
-  const degreeInterval = ( 360 / notchesCount ) || 1
+
+  // if there is a dead zone, add 1 to notchescount to spread evenly. otherwise it will overlap at the 360 mark
+  const degreeInterval = ( (360 - DEGREES_DEAD_AREA) / (DEGREES_DEAD_AREA ? notchesCount - 1 : notchesCount)   ) || 1
+  
+  // create degrees to map to, and notches
+  const degreesSet = []
   if (notchesCount) {
     for (let notch = 0; notch < notchesCount; notch++) {
-      // console.log(notch)
-      const degree = (notch * degreeInterval) - 90
-      let notchPosition = {
-        x: (radius + offset) * Math.cos(degree * (Math.PI / 180)) + radius - 3,
-        y: (radius + offset) * Math.sin(degree * (Math.PI / 180)) + radius - 1
-      }
-      const notchElem = document.createElement('div')
-      notchElem.classList.add('notchElem')
-      applyStyles(notchElem, {
-        ...notchStyles,
-        left: `${notchPosition.x}px`,
-        top: `${notchPosition.y}px`,
-        transform: `rotate(${degree}deg) scale(0)`
-      })
-      spinner.appendChild(notchElem)
-      setTimeout(()=>{
-        applyStyles(notchElem, {
-          transform: `rotate(${degree}deg) scale(1)` 
-        })
-      }, notch * 50)
+      let val = DEGREES_START - (notch * degreeInterval)
+      val = (val + 360) % 360
+      degreesSet.push(val)
     }
   }
 
+  // reverse the degree set so animation works
+  createNotches(spinner, radius, degreesSet.reverse())
+
+  // sort the degree set so we can properly get the closest match algorithmically
+  degreesSet.sort((a, b) => a - b)
 
   const center = {
     x: spinner.offsetLeft + spinner.offsetWidth / 2,
@@ -75,14 +135,11 @@ function Knob({selector: elem, notches: notchesCount}){
     }
   }
 
-  function roundTo(num, to){
-    return Math.round(num/to) * to
-  }
-
   function rotate(deg){
-    deg %= 360
     lastDeg = deg
-    inner.style.transform = `rotate(${deg}deg)`
+    // change degree to match CSS's interpretation of geometry
+    // and because the notch is vertical upon start
+    inner.style.transform = `rotate(${90 - deg}deg)`
     navigator.vibrate && navigator.vibrate([50])
   }
 
@@ -91,15 +148,14 @@ function Knob({selector: elem, notches: notchesCount}){
     e.preventDefault()
     if (active){
       let diffX = getCoordForElement('X') - center.x
-      let diffY = center.y - getCoordForElement('Y')
+      let diffY = center.y - getCoordForElement('Y')  // because Y is upside down from math
       let arctan = Math.atan2(diffY , diffX)
-      let deg = 90 - arctan * (180 / Math.PI)
-      let roundDeg = roundTo(deg, degreeInterval)
-      if (roundDeg < 0) roundDeg = 360 + roundDeg
+      let deg = (toDegrees(arctan) + 360) % 360
+      let roundDeg = nearestFromSet(deg, degreesSet)
       if (Math.abs(roundDeg) === Math.abs(lastDeg)) return
       else {
         rotate(roundDeg)
-        feedback.innerHTML = `X:${diffX} Y:${diffY} deg:${roundDeg}`
+        _onChange(normalizeDegree(roundDeg, DEGREES_DEAD_AREA, min, max))
       }
 
     }
@@ -139,21 +195,43 @@ function Knob({selector: elem, notches: notchesCount}){
   window.addEventListener('touchend', onRelease, false)
   window.addEventListener('mousemove', onMove, false)
   window.addEventListener('touchmove', onMove, false)
+
+  return {
+    setValue(val){
+      const degree = (val / max) * 360
+      rotate(degree)
+      return this
+    },
+    onChange(func){
+      _onChange = func
+      return this
+    }
+  }
 }
 
+// const updateFeedback = (deg) => feedback.innerHTML = `value :${deg}`
+
+// new Knob({
+//   notches: 24,
+//   selector: document.getElementById('knob-1')
+// })
+// .onChange(updateFeedback)
+
 new Knob({
-  notches: 24,
-  selector: document.getElementById('knob-1')
-})
-new Knob({
-  notches: 12,
+  notches: 15,
   selector: document.getElementById('knob-2')
 })
-new Knob({
-  notches: 8,
-  selector: document.getElementById('knob-3')
-})
-new Knob({
-  // notches: 18,
-  selector: document.getElementById('knob-4')
-})
+.onChange(console.log)
+
+// new Knob({
+// notches: 8,
+//   selector: document.getElementById('knob-3')
+// })
+// .setValue(20)
+// // .onChange(updateFeedback)
+
+// new Knob({
+//   // notches: 18,
+//   selector: document.getElementById('knob-4')
+// }).setValue(50)
+// // .onChange(updateFeedback)

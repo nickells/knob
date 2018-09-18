@@ -17,14 +17,14 @@
     body.is-scrolling .knob {
       cursor: default;
     }
-    .container {
+    body {
       display: flex;
-      border: 1px solid black;
-      width: 500px;
-      height: 500px;
+      width: 100vw;
+      height: 100vh;
       align-items: center;
       justify-content: space-around;
       background: none;
+      margin: 0;
     }
     
     .knob {
@@ -63,13 +63,13 @@
   </style>
 </head>
 <body>
-  <div class="container">
+  <!-- <div class="container"> -->
     <div class="knob" id="knob-1"><div class="inner"></div></div>
     <div class="knob" id="knob-2"><div class="inner"></div></div>
     <div class="knob" id="knob-3"><div class="inner"></div></div>
     <div class="knob" id="knob-4"><div class="inner"></div></div>
 
-  </div>
+  <!-- </div> -->
   <div id="feedback"></div>
 <script src="script.js"></script>
 </body>
